@@ -1,0 +1,15 @@
+version: "3"
+services:
+  echoip:
+    image: beszan/echoip
+    container_name: echoip
+    restart: always
+    environment:
+      RXTXRPT: "yes"
+    cap_add:
+      - SYS_ADMIN
+      - CHOWN
+      - NET_RAW
+    hostname: echoip
+    mem_limit: "64000000000"
+    mem_reservation: 64m
