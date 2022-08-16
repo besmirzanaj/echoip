@@ -6,12 +6,17 @@ services:
     image: "traefik:v2.8"
     container_name: "traefik"
     command:
-      #- "--log.level=DEBUG"
-      - "--api.insecure=true"
+      - "--log.level=DEBUG"
+      #- "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=proxy"
       - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
+      - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+      - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,172.18.0.1/16,172.17.0.1/16"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=besmirzanaj@gmail.com"
@@ -24,18 +29,23 @@ services:
       - "./letsencrypt:/letsencrypt"
 
   echoip:
-    image: beszan/echoip
+    image: beszan/echoip:latest
     container_name: echoip
     restart: always
-    hostname: echoip
+    hostname: "ifconfig.cloudalbania.com"
+    command: ["-H", "X-Real-IP", "-a", "/usr/share/GeoIP/GeoLite2-ASN.mmdb", "-c", "/usr/share/GeoIP/GeoLite2-City.mmdb", "-f", "/usr/share/GeoIP/GeoLite2-Country.mmdb"]
+    #command: ["-H", "X-Real-IP"]
+    volumes:
+      - "/usr/share/GeoIP/:/usr/share/GeoIP/"
     deploy:
       resources:
         limits:
           memory: 64M
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.whoami.rule=Host(`ifconfig.cloudalbania.com`)"
-      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.echoip.rule=Host(`ifconfig.cloudalbania.com`)"
+      - "traefik.http.routers.echoip.entrypoints=websecure"
+      - "traefik.http.routers.echoip.tls=true"
       - "traefik.http.services.echoip.loadbalancer.server.port=8080"
-      #- "traefik.http.routers.whoami.entrypoints=web"
-      - "traefik.http.routers.whoami.tls.certresolver=myresolver"
+      - "traefik.http.services.echoip.loadBalancer.passHostHeader=true"
+      - "traefik.http.routers.echoip.tls.certresolver=myresolver"
