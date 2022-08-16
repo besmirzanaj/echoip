@@ -1,7 +1,5 @@
 version: "3.3"
-
 services:
-
   traefik:
     image: "traefik:v2.8"
     container_name: "traefik"
@@ -13,10 +11,11 @@ services:
       - "--providers.docker.exposedbydefault=false"
       - "--providers.docker.network=proxy"
       - "--entrypoints.web.address=:80"
-      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      #- "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      #- "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
-      - "--entryPoints.websecure.forwardedHeaders.insecure=true"
+      #- "--entryPoints.websecure.forwardedHeaders.insecure=true"
+      - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,172.18.0.1/16,172.17.0.1/16"
       - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,172.18.0.1/16,172.17.0.1/16"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
@@ -44,9 +43,15 @@ services:
           memory: 64M
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.echoip.rule=Host(`ifconfig.cloudalbania.com`)"
-      - "traefik.http.routers.echoip.entrypoints=websecure"
-      - "traefik.http.routers.echoip.tls=true"
-      - "traefik.http.services.echoip.loadbalancer.server.port=8080"
-      - "traefik.http.services.echoip.loadBalancer.passHostHeader=true"
-      - "traefik.http.routers.echoip.tls.certresolver=myresolver"
+      - "traefik.http.routers.echoip-https.rule=Host(`ifconfig.cloudalbania.com`)"
+      - "traefik.http.routers.echoip-https.entrypoints=websecure"
+      - "traefik.http.routers.echoip-https.tls=true"
+      - "traefik.http.routers.echoip-https.service=echoip-https"
+      - "traefik.http.routers.echoip-https.tls.certresolver=myresolver"
+      - "traefik.http.services.echoip-https.loadbalancer.server.port=8080"
+      - "traefik.http.services.echoip-https.loadBalancer.passHostHeader=true"
+      - "traefik.http.routers.echoip-http.rule=Host(`ifconfig.cloudalbania.com`)"
+      - "traefik.http.routers.echoip-http.entrypoints=web"
+      - "traefik.http.services.echoip-http.loadbalancer.server.port=8080"
+      - "traefik.http.routers.echoip-http.service=echoip-http"
+      - "traefik.http.services.echoip-http.loadBalancer.passHostHeader=true"
