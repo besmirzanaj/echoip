@@ -5,6 +5,7 @@ services:
   traefik:
     image: "traefik:v2.8"
     container_name: "traefik"
+    restart: on-failure
     command:
       - "--log.level=DEBUG"
       #- "--api.insecure=true"
@@ -29,11 +30,11 @@ services:
       - "./letsencrypt:/letsencrypt"
 
   echoip:
-    image: beszan/echoip:latest
+    image: beszan/echoip:v1.5
     container_name: echoip
-    restart: always
+    restart: on-failure
     hostname: "ifconfig.cloudalbania.com"
-    command: ["-H", "X-Real-IP", "-a", "/usr/share/GeoIP/GeoLite2-ASN.mmdb", "-c", "/usr/share/GeoIP/GeoLite2-City.mmdb", "-f", "/usr/share/GeoIP/GeoLite2-Country.mmdb"]
+    command: ["-r", "-H", "X-Real-IP", "-a", "/usr/share/GeoIP/GeoLite2-ASN.mmdb", "-c", "/usr/share/GeoIP/GeoLite2-City.mmdb", "-f", "/usr/share/GeoIP/GeoLite2-Country.mmdb"]
     #command: ["-H", "X-Real-IP"]
     volumes:
       - "/usr/share/GeoIP/:/usr/share/GeoIP/"
