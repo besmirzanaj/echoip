@@ -1,17 +1,41 @@
-version: "3"
+version: "3.3"
+
 services:
+
+  traefik:
+    image: "traefik:v2.8"
+    container_name: "traefik"
+    command:
+      #- "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.myresolver.acme.email=besmirzanaj@gmail.com"
+      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./letsencrypt:/letsencrypt"
+
   echoip:
     image: beszan/echoip
     container_name: echoip
     restart: always
-    ports:
-      8080:8080
-    environment:
-      RXTXRPT: "yes"
-    cap_add:
-      - SYS_ADMIN
-      - CHOWN
-      - NET_RAW
     hostname: echoip
-    mem_limit: "64000000000"
-    mem_reservation: 64m
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`ifconfig.cloudalbania.com`)"
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.services.echoip.loadbalancer.server.port=8080"
+      #- "traefik.http.routers.whoami.entrypoints=web"
+      - "traefik.http.routers.whoami.tls.certresolver=myresolver"

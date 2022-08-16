@@ -129,3 +129,13 @@ Usage of echoip:
   -t string
     	Path to template directory (default "html")
 ```
+## Run with docker
+
+```shell
+docker run --detach --restart=always \
+	--log-driver json-file --log-opt max-size=10m \
+	--cpus=1 --memory=64m --memory-reservation=64m \
+	--name echoip --hostname "$(hostname --fqdn)" \
+  -p 8080:8080 \
+	beszan/echoip
+```
