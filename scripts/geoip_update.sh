@@ -8,7 +8,7 @@
 # Database directory
 DBDIR=/usr/share/GeoIP
 
-# Files to download (.dat.gz suffix not required)
+# Files to download
 FILES="https://git.io/GeoLite2-ASN.mmdb https://git.io/GeoLite2-City.mmdb https://git.io/GeoLite2-Country.mmdb"
 
 # If http proxy needed

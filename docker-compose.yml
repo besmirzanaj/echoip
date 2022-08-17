@@ -6,15 +6,10 @@ services:
     restart: always
     command:
       #- "--log.level=DEBUG"
-      #- "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=proxy"
       - "--entrypoints.web.address=:80"
-      #- "--entrypoints.web.http.redirections.entryPoint.to=websecure"
-      #- "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
-      #- "--entryPoints.websecure.forwardedHeaders.insecure=true"
       - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,172.18.0.1/16,172.17.0.1/16"
       - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,172.18.0.1/16,172.17.0.1/16"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
