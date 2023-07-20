@@ -6,22 +6,30 @@ services:
     restart: always
     command:
       #- "--log.level=DEBUG"
+      #- "--api.insecure=true"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
+      - "--global.sendAnonymousUsage=false"
       - "--entrypoints.web.address=:80"
+      #- "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      #- "--entrypoints.web.http.redirections.entryPoint.scheme=https"
       - "--entrypoints.websecure.address=:443"
+      #- "--entryPoints.websecure.forwardedHeaders.insecure=true"
       - "--entryPoints.web.forwardedHeaders.trustedIPs=127.0.0.1/32,172.18.0.1/16,172.17.0.1/16"
       - "--entryPoints.websecure.forwardedHeaders.trustedIPs=127.0.0.1/32,172.18.0.1/16,172.17.0.1/16"
       - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
       - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.myresolver.acme.email=besmirzanaj@gmail.com"
       - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+      - "--providers.file.watch=true"
+      - "--providers.file.filename=dynamic.yaml"
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "/var/run/podman/podman.sock:/var/run/docker.sock:ro"
       - "./letsencrypt:/letsencrypt"
+      - "./dynamic.yaml:/dynamic.yaml"
 
   echoip:
     image: beszan/echoip:v1.5
@@ -41,6 +49,7 @@ services:
       - "traefik.http.routers.echoip-https.rule=Host(`ifconfig.cloudalbania.com`)"
       - "traefik.http.routers.echoip-https.entrypoints=websecure"
       - "traefik.http.routers.echoip-https.tls=true"
+      - "traefik.http.routers.echoip-https.tls.options=echoip-https@file"
       - "traefik.http.routers.echoip-https.service=echoip-https"
       - "traefik.http.routers.echoip-https.tls.certresolver=myresolver"
       - "traefik.http.services.echoip-https.loadbalancer.server.port=8080"
