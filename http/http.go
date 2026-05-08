@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"io"
 	"log"
 	"path/filepath"
 	"strings"
@@ -42,7 +42,7 @@ type Response struct {
 	IPDecimal  *big.Int             `json:"ip_decimal"`
 	Country    string               `json:"country,omitempty"`
 	CountryISO string               `json:"country_iso,omitempty"`
-	CountryEU  *bool                `json:"country_eu,omitempty"`
+	CountryEU  bool                 `json:"country_eu"`
 	RegionName string               `json:"region_name,omitempty"`
 	RegionCode string               `json:"region_code,omitempty"`
 	MetroCode  uint                 `json:"metro_code,omitempty"`
@@ -68,11 +68,11 @@ func New(db geo.Reader, cache *Cache, profile bool) *Server {
 }
 
 func ipFromForwardedForHeader(v string) string {
-	sep := strings.Index(v, ",")
-	if sep == -1 {
+	before, _, ok := strings.Cut(v, ",")
+	if !ok {
 		return v
 	}
-	return v[:sep]
+	return before
 }
 
 // ipFromRequest detects the IP address for this transaction.
@@ -99,15 +99,21 @@ func ipFromRequest(headers []string, r *http.Request, customIP bool) (net.IP, er
 		}
 	}
 	if remoteIP == "" {
-		host, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			return nil, err
-		}
-		remoteIP = host
+		remoteIP = r.RemoteAddr
 	}
 	ip := net.ParseIP(remoteIP)
 	if ip == nil {
-		return nil, fmt.Errorf("could not parse IP: %s", remoteIP)
+		if strings.Contains(remoteIP, ":") {
+			host, _, err := net.SplitHostPort(remoteIP)
+			if err != nil {
+				return nil, err
+			}
+			remoteIP = host
+			ip = net.ParseIP(remoteIP)
+		}
+		if ip == nil {
+			return nil, fmt.Errorf("could not parse IP: %s", remoteIP)
+		}
 	}
 	return ip, nil
 }
@@ -269,6 +275,12 @@ func (s *Server) HealthHandler(w http.ResponseWriter, r *http.Request) *appError
 	return nil
 }
 
+func (s *Server) HeadHandler(w http.ResponseWriter, r *http.Request) *appError {
+	return &appError{
+		Code: http.StatusNoContent,
+	}
+}
+
 func (s *Server) PortHandler(w http.ResponseWriter, r *http.Request) *appError {
 	response, err := s.newPortResponse(r)
 	if err != nil {
@@ -284,7 +296,7 @@ func (s *Server) PortHandler(w http.ResponseWriter, r *http.Request) *appError {
 }
 
 func (s *Server) cacheResizeHandler(w http.ResponseWriter, r *http.Request) *appError {
-	body, err := ioutil.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		return badRequest(err).WithMessage(err.Error()).AsJSON()
 	}
@@ -425,6 +437,9 @@ func (s *Server) Handler() http.Handler {
 
 	// Health
 	r.Route("GET", "/health", s.HealthHandler)
+
+	// Health
+	r.Route("HEAD", "/", s.HeadHandler)
 
 	// JSON
 	r.Route("GET", "/", s.JSONHandler).Header("Accept", jsonMediaType)
