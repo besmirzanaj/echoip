@@ -374,7 +374,7 @@ func (s *Server) DefaultHandler(w http.ResponseWriter, r *http.Request) *appErro
 		s.LookupPort != nil,
 		s.Sponsor,
 	}
-	if err := t.Execute(w, &data); err != nil {
+	if err := t.ExecuteTemplate(w, "index.html", &data); err != nil {
 		return internalServerError(err)
 	}
 	return nil
