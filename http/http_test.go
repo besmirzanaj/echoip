@@ -240,16 +240,16 @@ func TestIPv4FromRequest(t *testing.T) {
 
 func TestIPv6FromRequest(t *testing.T) {
 	var tests = []ipTestCase{
-		{"[::1]:9999", "", "", nil, "::1"},                                                                                                  // No header given
-		{"[::1]:9999", "X-Real-IP", "::ffff:103:307", nil, "::1"},                                                                           // Trusted header is empty
-		{"[::1]:9999", "X-Real-IP", "::ffff:103:307", []string{"X-Foo-Bar"}, "::1"},                                                         // Trusted header does not match
-		{"[::1]:9999", "X-Real-IP", "::ffff:103:307", []string{"X-Real-IP", "X-Forwarded-For"}, "::ffff:103:307"},                           // Trusted header matches
-		{"[::1]:9999", "X-Forwarded-For", "::ffff:103:307", []string{"X-Real-IP", "X-Forwarded-For"}, "::ffff:103:307"},                     // Second trusted header matches
-		{"[::1]:9999", "X-Forwarded-For", "::ffff:103:307,::ffff:402:402", []string{"X-Forwarded-For"}, "::ffff:103:307"},                   // X-Forwarded-For with multiple entries (commas separator)
-		{"[::1]:9999", "X-Forwarded-For", "::ffff:103:307, ::ffff:402:402", []string{"X-Forwarded-For"}, "::ffff:103:307"},                  // X-Forwarded-For with multiple entries (space+comma separator)
-		{"[::1]:9999", "X-Forwarded-For", "", []string{"X-Forwarded-For"}, "::1"},                                                           // Empty header
-		{"[::1]:9999?ip=::ffff:102:304", "", "", nil, "::ffff:102:304"},                                                                     // passed in "ip" parameter
-		{"[::1]:9999?ip=::ffff:102:304", "X-Forwarded-For", "::ffff:103:307,::ffff:402:402", []string{"X-Forwarded-For"}, "::ffff:102:304"}, // ip parameter wins over X-Forwarded-For with multiple entries
+		{"[::1]:9999", "", "", nil, "::1"},                                                                                                                       // No header given
+		{"[::1]:9999", "X-Real-IP", "::ffff:103:307", nil, "::1"},                                                                                                // Trusted header is empty
+		{"[::1]:9999", "X-Real-IP", "::ffff:103:307", []string{"X-Foo-Bar"}, "::1"},                                                                              // Trusted header does not match
+		{"[::1]:9999", "X-Real-IP", "::ffff:103:307", []string{"X-Real-IP", "X-Forwarded-For"}, "::ffff:103:307"},                                                // Trusted header matches
+		{"[::1]:9999", "X-Forwarded-For", "::ffff:103:307", []string{"X-Real-IP", "X-Forwarded-For"}, "::ffff:103:307"},                                          // Second trusted header matches
+		{"[::1]:9999", "X-Forwarded-For", "::ffff:103:307,::ffff:402:402", []string{"X-Forwarded-For"}, "::ffff:103:307"},                                        // X-Forwarded-For with multiple entries (commas separator)
+		{"[::1]:9999", "X-Forwarded-For", "::ffff:103:307, ::ffff:402:402", []string{"X-Forwarded-For"}, "::ffff:103:307"},                                       // X-Forwarded-For with multiple entries (space+comma separator)
+		{"[::1]:9999", "X-Forwarded-For", "", []string{"X-Forwarded-For"}, "::1"},                                                                                // Empty header
+		{"[::1]:9999?ip=::ffff:102:304", "", "", nil, "::ffff:102:304"},                                                                                          // passed in "ip" parameter
+		{"[::1]:9999?ip=::ffff:102:304", "X-Forwarded-For", "::ffff:103:307,::ffff:402:402", []string{"X-Forwarded-For"}, "::ffff:102:304"},                      // ip parameter wins over X-Forwarded-For with multiple entries
 		{"[::1]:9999", "X-Real-IP", "[::ffff:103:307]:1337", []string{"X-Real-IP", "X-Forwarded-For"}, "::ffff:103:307"},                                         // Trusted header matches (with port)
 		{"[::1]:9999", "X-Forwarded-For", "[::ffff:103:307]:1337", []string{"X-Real-IP", "X-Forwarded-For"}, "::ffff:103:307"},                                   // Second trusted header matches (with port)
 		{"[::1]:9999", "X-Forwarded-For", "[::ffff:103:307]:1337,[::ffff:402:402]:4242", []string{"X-Forwarded-For"}, "::ffff:103:307"},                          // X-Forwarded-For with multiple entries (commas separator, with port)
