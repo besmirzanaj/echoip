@@ -38,7 +38,8 @@ func main() {
 	template := flag.String("t", "html", "Path to template dir")
 	cacheSize := flag.Int("C", 0, "Size of response cache. Set to 0 to disable")
 	profile := flag.Bool("P", false, "Enables profiling handlers")
-	sponsor := flag.Bool("s", false, "Show sponsor logo")
+	sponsor := flag.String("s", "", "Sponsor URL shown as a \"hosted by\" link (empty to disable)")
+	title := flag.String("T", "", "Page title (defaults to the request host)")
 	var headers multiValueFlag
 	flag.Var(&headers, "H", "Header to trust for remote IP, if present (e.g. X-Real-IP)")
 	flag.Parse()
@@ -67,9 +68,13 @@ func main() {
 		log.Println("Enabling port lookup")
 		server.LookupPort = iputil.LookupPort
 	}
-	if *sponsor {
-		log.Println("Enabling sponsor logo")
+	if *sponsor != "" {
+		log.Printf("Enabling sponsor link: %s", *sponsor)
 		server.Sponsor = *sponsor
+	}
+	if *title != "" {
+		log.Printf("Setting page title: %s", *title)
+		server.Title = *title
 	}
 	if len(headers) > 0 {
 		log.Printf("Trusting remote IP from header(s): %s", headers.String())

@@ -123,6 +123,9 @@ Usage of echoip:
     	Size of response cache. Set to 0 to disable
   -H value
     	Header to trust for remote IP, if present (e.g. X-Real-IP)
+  -P	Enables profiling handlers
+  -T string
+    	Page title (defaults to the request host)
   -a string
     	Path to GeoIP ASN database
   -c string
@@ -133,8 +136,10 @@ Usage of echoip:
     	Listening address (default ":8080")
   -p	Enable port lookup
   -r	Perform reverse hostname lookups
+  -s string
+    	Sponsor URL shown as a "hosted by" link (empty to disable)
   -t string
-    	Path to template directory (default "html")
+    	Path to template dir (default "html")
 ```
 ## Run with docker
 

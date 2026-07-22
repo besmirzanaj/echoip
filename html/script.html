@@ -1,88 +1,98 @@
-<script lang="text/javascript">
-  let host = "{{ .Host }}";
-  let jsonObj = "{{ .JSON }}";
-  let data = JSON.parse(jsonObj);
-  let tool = "curl";
-  let commandBox, widgetBox, compositePath, commandStr;
-  let path
-  let ipQuery, portQuery
-  let ipCheckBox, portCheckBox, portInput
-  let ip = ''
+<script>
+  const host = "{{ .Host }}";
+  const data = JSON.parse("{{ .JSON }}");
+  const cmdBox = document.getElementById("cmd");
+  const outBox = document.getElementById("out");
+  const portInput = document.getElementById("portInput");
+  const ipInput = document.getElementById("ipInput");
 
-  window.onload = (event) => {
-     commandBox = document.getElementById('command');
-     widgetBox = document.getElementById('output');
-     ipCheckBox = document.getElementById('ipCheckBox')
-     portCheckBox = document.getElementById('portCheckBox')
-     portInput = document.getElementById('portInput')
-     reset()
-     setcommdStr()
-     changeInput("ip")
+  let endpoint = "ip";
+  let queryIP = ipInput ? ipInput.value.trim() : "";
+  let port = portInput ? portInput.value : "8080";
+
+  function currentPath() {
+    if (endpoint === "ip") return "";
+    if (endpoint === "port") return "port/" + port;
+    return endpoint;
   }
 
-  function reset() {
-    path = '';
-    ipQuery = '';
-    portQuery = '';
+  function currentQuery() {
+    return queryIP ? "?ip=" + encodeURIComponent(queryIP) : "";
   }
 
-  function setcommdStr() {
-    compositePath = `${path}${portQuery}${ipQuery}`;
-    commandStr = `${tool} ${host}/${compositePath}`;
-    commandBox.innerText = commandStr;
-  }
-
-  function changeInput(input, button) {
-    path = input
-    portQuery = ""
-    portInput.classList.add("hidden");
-    switch(path) {
+  function render() {
+    cmdBox.textContent = "curl " + host + "/" + currentPath() + currentQuery();
+    let out;
+    switch (endpoint) {
       case "json":
-        output.innerText = jsonObj
-        break
+        out = JSON.stringify(data, null, 2);
+        break;
       case "country-iso":
-        output.innerText = data["country_iso"]
-        break
+        out = data["country_iso"];
+        break;
       case "port":
-        portInput.classList.remove("hidden");
-        path = "port";
-        output.innerText = "{}";
-        let currentPort = document.querySelector("#portInput").value;
-        updatePort(currentPort);
-        break
-      case "ip":
-        output.innerText = data["ip"]
-        path = ""
-        break
+        out = "{}";
+        break;
       default:
-        output.innerText = data[path]
+        out = data[endpoint];
     }
-    setcommdStr();
+    outBox.textContent = out === undefined ? "" : out;
+  }
 
-    // set button selected
-    if (button) {
-      allButtons = document.querySelectorAll(('button.selected'));
-      allButtons.forEach((btn) => {btn.classList.remove("selected")})
-
-      button.classList.add("selected");
+  function pick(button, name) {
+    endpoint = name;
+    document.querySelectorAll(".chip").forEach((chip) => {
+      chip.setAttribute("aria-pressed", chip === button ? "true" : "false");
+    });
+    if (portInput) {
+      portInput.classList.toggle("hidden", name !== "port");
     }
+    render();
   }
 
-  function navigate(event) {
-    console.log("navigate", compositePath)
-    window.location = compositePath
+  function setPort(value) {
+    port = value;
+    render();
   }
 
-  function updatePort(value) {
-    port = value
-    portQuery = `/${port}`
-    setcommdStr()
+  function setQueryIP(value) {
+    queryIP = value.trim();
+    render();
   }
 
-  function updateIP(value) {
-    ip = value
-    ipQuery = `?ip=${ip}`;
-    setcommdStr()
-    changeInput("ip", null)
+  function openQuery() {
+    window.location = "/" + currentPath() + currentQuery();
   }
+
+  function copyIP(button) {
+    navigator.clipboard
+      .writeText(document.getElementById("myip").textContent)
+      .then(() => {
+        button.textContent = "Copied";
+        setTimeout(() => (button.textContent = "Copy"), 1500);
+      });
+  }
+
+  function toggleTheme() {
+    const root = document.documentElement;
+    const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const current = root.dataset.theme || (systemDark ? "dark" : "light");
+    const next = current === "dark" ? "light" : "dark";
+    root.dataset.theme = next;
+    try {
+      localStorage.setItem("theme", next);
+    } catch (e) {}
+  }
+
+  const mapDetails = document.getElementById("mapDetails");
+  if (mapDetails) {
+    mapDetails.addEventListener("toggle", () => {
+      const frame = mapDetails.querySelector("iframe");
+      if (mapDetails.open && frame && !frame.src) {
+        frame.src = frame.dataset.src;
+      }
+    });
+  }
+
+  render();
 </script>

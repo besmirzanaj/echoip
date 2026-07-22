@@ -8,8 +8,8 @@
 # Database directory
 DBDIR=/usr/share/GeoIP
 
-# Files to download
-FILES="https://git.io/GeoLite2-ASN.mmdb https://git.io/GeoLite2-City.mmdb https://git.io/GeoLite2-Country.mmdb"
+# Files to download (direct release URLs; the old git.io shortlinks are deprecated)
+FILES="https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-ASN.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-City.mmdb https://github.com/P3TERX/GeoLite.mmdb/releases/latest/download/GeoLite2-Country.mmdb"
 
 # If http proxy needed
 #https_proxy="http://foo.bar:3128"

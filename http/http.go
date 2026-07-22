@@ -18,6 +18,7 @@ import (
 	"math/big"
 	"net"
 	"net/http"
+	"net/url"
 	"strconv"
 )
 
@@ -34,7 +35,8 @@ type Server struct {
 	cache      *Cache
 	gr         geo.Reader
 	profile    bool
-	Sponsor    bool
+	Sponsor    string
+	Title      string
 }
 
 type Response struct {
@@ -353,18 +355,30 @@ func (s *Server) DefaultHandler(w http.ResponseWriter, r *http.Request) *appErro
 		return internalServerError(err)
 	}
 
+	sponsorName := s.Sponsor
+	if u, err := url.Parse(s.Sponsor); err == nil && u.Host != "" {
+		sponsorName = u.Host
+	}
+	title := s.Title
+	if title == "" {
+		title = r.Host
+	}
 	var data = struct {
 		Response
-		Host         string
-		BoxLatTop    float64
-		BoxLatBottom float64
-		BoxLonLeft   float64
-		BoxLonRight  float64
-		JSON         string
-		Port         bool
-		Sponsor      bool
+		Title          string
+		Host           string
+		BoxLatTop      float64
+		BoxLatBottom   float64
+		BoxLonLeft     float64
+		BoxLonRight    float64
+		JSON           string
+		Port           bool
+		Sponsor        string
+		SponsorName    string
+		ExplicitLookup bool
 	}{
 		response,
+		title,
 		r.Host,
 		response.Latitude + 0.05,
 		response.Latitude - 0.05,
@@ -373,6 +387,8 @@ func (s *Server) DefaultHandler(w http.ResponseWriter, r *http.Request) *appErro
 		string(json),
 		s.LookupPort != nil,
 		s.Sponsor,
+		sponsorName,
+		r.URL.Query().Has("ip"),
 	}
 	if err := t.ExecuteTemplate(w, "index.html", &data); err != nil {
 		return internalServerError(err)
